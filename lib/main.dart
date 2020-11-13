@@ -1,126 +1,105 @@
+import 'package:appcompare/list_bloc.dart';
 import 'package:flutter/material.dart';
 
-import 'Photo.dart';
+void main() => runApp(MyApp());
 
-void main() async {
-  runApp(
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: MyApp(),
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
-    ),
-  );
-}
-
-class MyApp extends StatefulWidget {
-  @override
-  _MyAppState createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
-  AnimationController controller;
-  Animation<double> animation;
-
-  @override
-  void initState() {
-    super.initState();
-
-    controller = AnimationController(
-      duration: Duration(seconds: 1),
-      vsync: this,
+      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
-
-    animation = CurvedAnimation(
-      parent: controller,
-      curve: Curves.easeInOutCubic,
-    ).drive(Tween(begin: 0, end: 2));
   }
+}
+
+class MyHomePage extends StatefulWidget {
+  MyHomePage({Key key, this.title}) : super(key: key);
+
+  final String title;
+
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  ListBloc _listBloc = ListBloc();
 
   @override
   void dispose() {
-    controller.dispose();
+    _listBloc.dispose();
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Text("Oi, vamos começar por aqui!");
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
+      body: Center(
+        child: StreamBuilder(
+          stream: _listBloc.output,
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            }
 
-    // GestureDetector(
-    //   onTap: () {
-    //     controller
-    //       ..reset()
-    //       ..forward();
-    //   },
-    //   child: RotationTransition(
-    //     turns: animation,
-    //     child: Stack(
-    //       children: [
-    //         Positioned.fill(
-    //           child: FlutterLogo(),
-    //         ),
-    //         Center(
-    //           child: Text(
-    //             'Click me!',
-    //             style: TextStyle(
-    //               fontSize: 60.0,
-    //               fontWeight: FontWeight.bold,
-    //             ),
-    //           ),
-    //         ),
-    //       ],
-    //     ),
-    //   ),
-    // );
+            switch (snapshot.connectionState) {
+              case ConnectionState.waiting:
+                return CircularProgressIndicator();
+              default:
+                if (snapshot.data.length == 0) {
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text('Nenhum registro'),
+                      IconButton(
+                        onPressed: () => _listBloc.getList(),
+                        color: Colors.blue,
+                        icon: Icon(Icons.refresh),
+                      )
+                    ],
+                  );
+                }
+
+                return RefreshIndicator(
+                  onRefresh: () async => _listBloc.getList(),
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    itemCount: snapshot.data.length,
+                    itemBuilder: (BuildContext context, int i) {
+                      Map<String, dynamic> item = snapshot.data[i];
+
+                      return ListTile(
+                        leading: const Icon(Icons.people),
+                        title: Text('#${item['id']} ${item['name']}'),
+                        subtitle: Text('${item['desc']}'),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete_forever),
+                          color: Colors.red[700],
+                          onPressed: () =>
+                              _listBloc.delete(item['id'].toString()),
+                        ),
+                        onLongPress: () async =>
+                            _listBloc.update(item['id'].toString()),
+                      );
+                    },
+                  ),
+                );
+            }
+          },
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async => _listBloc.create(),
+        tooltip: 'Increment',
+        child: Icon(Icons.add),
+      ),
+    );
   }
-  getRestSerialized() async{
-    Response response=await Dio().request(
-        'https://jsonplacehelder.typicode.code.com/todos',
-          options: Options(helders: {"Acepet":"aplication/json"})
-                    );
-                    List<User> users= List<User>();
-                    for (Map<String ,dynamic>json in response .data){
-                      User user=User.fromJson(json);
-                      print(user.title);
-                      users.add(user);
-                          
-                            }
-                          
-                          
-                            }
-                            getSerializedJson() async{
-                              Response response=await Dio().request(
-                          'https://jsonplacehelder.typicode.code.com/todos',
-                            options: Options(helders: {"Acepet":"aplication/json"})
-                            );
-                            print(response.data);
-                              List<Photo>photos=List<Photo>();
-                             for (Map<String ,dynamic>json in response .data){
-                               Photo.photo=Photo.fromJson (json);
-                              
-                             var photo;
-                              print(photo.thumb);
-                               photos.add(photo);
-                          
-                             }
-                            
-                          
-                          
-                            }
-                  
-                    Dio() {}
-          
-            Options({Map<String, String> helders}) {}
-              }
-    
-    class Response {
-  get data => null;
 }
-        
-        class User {
-  Object get title => null;
-
-      static User fromJson(Map<String, User > json) {}
-}
-
