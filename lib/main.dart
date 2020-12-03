@@ -7,11 +7,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Registros',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.green,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Registrosim!'),
     );
   }
 }
@@ -60,7 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       Text('Nenhum registro'),
                       IconButton(
                         onPressed: () => _listBloc.getList(),
-                        color: Colors.blue,
+                        color: Colors.purple,
                         icon: Icon(Icons.refresh),
                       )
                     ],
@@ -76,12 +76,12 @@ class _MyHomePageState extends State<MyHomePage> {
                       Map<String, dynamic> item = snapshot.data[i];
 
                       return ListTile(
-                        leading: const Icon(Icons.people),
+                        leading: const Icon(Icons.accessibility_new_sharp),
                         title: Text('#${item['id']} ${item['name']}'),
                         subtitle: Text('${item['desc']}'),
                         trailing: IconButton(
                           icon: Icon(Icons.delete_forever),
-                          color: Colors.red[700],
+                          color: Colors.purple[700],
                           onPressed: () =>
                               _listBloc.delete(item['id'].toString()),
                         ),
